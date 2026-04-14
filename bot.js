@@ -68,37 +68,38 @@ bot.on("message", async msg => {
     });
     return;
   }
-// ===== GAME TOPUP =====
-if (text === "🎮 Game Top-Ups") {
-  users[chatId] = { mode: "topup" };
 
-  bot.sendMessage(chatId, "💱 Choose Currency:", {
-    reply_markup: {
-      keyboard: [
-        ["🇳🇵 Nepali (NPR)", "💵 USD"],
-        ["🔙 Back to Menu"]
-      ],
-      resize_keyboard: true
-    }
-  });
-  return;
-}
+  // ===== GAME TOPUP MODE =====
+  if (text === "🎮 Game Top-Ups") {
+    users[chatId] = { mode: "topup" };
 
-// ===== GIFT / VOUCHER =====
-if (text === "🎁 Gift Card & PUBG Voucher") {
-  users[chatId] = { mode: "voucher" };
+    bot.sendMessage(chatId, "💱 Choose Currency:", {
+      reply_markup: {
+        keyboard: [
+          ["🇳🇵 Nepali (NPR)", "💵 USD"],
+          ["🔙 Back to Menu"]
+        ],
+        resize_keyboard: true
+      }
+    });
+    return;
+  }
 
-  bot.sendMessage(chatId, "💱 Choose Currency:", {
-    reply_markup: {
-      keyboard: [
-        ["🇳🇵 Nepali (NPR)", "💵 USD"],
-        ["🔙 Back to Menu"]
-      ],
-      resize_keyboard: true
-    }
-  });
-  return;
-}
+  // ===== VOUCHER MODE =====
+  if (text === "🎁 Gift Card & PUBG Voucher") {
+    users[chatId] = { mode: "voucher" };
+
+    bot.sendMessage(chatId, "💱 Choose Currency:", {
+      reply_markup: {
+        keyboard: [
+          ["🇳🇵 Nepali (NPR)", "💵 USD"],
+          ["🔙 Back to Menu"]
+        ],
+        resize_keyboard: true
+      }
+    });
+    return;
+  }
 
   // ===== SUPPORT =====
   if (text === "📞 Support") {
@@ -141,21 +142,7 @@ if (text === "🎁 Gift Card & PUBG Voucher") {
     return;
   }
 
-  // ===== CURRENCY SELECT =====
-  if (text === "🎮 Game Top-Ups" || text === "🎁 Gift Card & PUBG Voucher") {
-    users[chatId] = {};
-    bot.sendMessage(chatId, "💱 Choose Currency:", {
-      reply_markup: {
-        keyboard: [
-          ["🇳🇵 Nepali (NPR)", "💵 USD"],
-          ["🔙 Back to Menu"]
-        ],
-        resize_keyboard: true
-      }
-    });
-    return;
-  }
-
+  // ===== CURRENCY =====
   if (text === "🇳🇵 Nepali (NPR)" || text === "💵 USD") {
     user.currency = text;
     users[chatId] = user;
@@ -187,6 +174,52 @@ if (text === "🎁 Gift Card & PUBG Voucher") {
 
   // ===== PUBG =====
   if (text === "🎯 PUBGM UC & Items") {
+
+    // 🎁 VOUCHER MODE → NO UID
+    if (user.mode === "voucher") {
+      const currency = user.currency;
+      let priceList = prices;
+
+      if (currency === "💵 USD") {
+        priceList = {
+          "60": "0.93",
+          "325": "4.65",
+          "985": "13.70",
+          "1320": "18.90",
+          "1800": "24.00",
+          "3850": "45.00",
+          "8100": "88.00"
+        };
+      }
+
+      bot.sendMessage(chatId, "🎫 PUBG UC Voucher List:", {
+        reply_markup: {
+          keyboard: [
+            [
+              `60 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["60"] : "Rs " + priceList["60"]}`,
+              `325 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["325"] : "Rs " + priceList["325"]}`
+            ],
+            [
+              `985 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["985"] : "Rs " + priceList["985"]}`,
+              `1320 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["1320"] : "Rs " + priceList["1320"]}`
+            ],
+            [
+              `1800 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["1800"] : "Rs " + priceList["1800"]}`
+            ],
+            [
+              `3850 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["3850"] : "Rs " + priceList["3850"]}`,
+              `8100 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["8100"] : "Rs " + priceList["8100"]}`
+            ],
+            ["🔙 Back to Menu"]
+          ],
+          resize_keyboard: true
+        }
+      });
+
+      return;
+    }
+
+    // 🎮 TOPUP MODE → ASK UID
     user.waitingUID = true;
     users[chatId] = user;
 
@@ -209,7 +242,6 @@ if (text === "🎁 Gift Card & PUBG Voucher") {
         users[chatId] = user;
 
         const currency = user.currency;
-
         let priceList = prices;
 
         if (currency === "💵 USD") {
@@ -230,24 +262,15 @@ if (text === "🎁 Gift Card & PUBG Voucher") {
 💎 Select UC`, {
           reply_markup: {
             keyboard: [
-  [
-    `60 UC - ${currency === "💵 USD" ? "$" + priceList["60"] : "Rs " + priceList["60"]}`,
-    `325 UC - ${currency === "💵 USD" ? "$" + priceList["325"] : "Rs " + priceList["325"]}`
-  ],
-  [
-    `985 UC - ${currency === "💵 USD" ? "$" + priceList["985"] : "Rs " + priceList["985"]}`,
-    `1320 UC - ${currency === "💵 USD" ? "$" + priceList["1320"] : "Rs " + priceList["1320"]}`
-  ],
-  [
-    `1800 UC - ${currency === "💵 USD" ? "$" + priceList["1800"] : "Rs " + priceList["1800"]}`
-  ],
-  [
-    `3850 UC - ${currency === "💵 USD" ? "$" + priceList["3850"] : "Rs " + priceList["3850"]}`,
-    `8100 UC - ${currency === "💵 USD" ? "$" + priceList["8100"] : "Rs " + priceList["8100"]}`
-  ],
-  ["🔙 Back to Menu"]
-]
-,
+              [`60 UC - ${currency === "💵 USD" ? "$" + priceList["60"] : "Rs " + priceList["60"]}`],
+              [`325 UC - ${currency === "💵 USD" ? "$" + priceList["325"] : "Rs " + priceList["325"]}`],
+              [`985 UC - ${currency === "💵 USD" ? "$" + priceList["985"] : "Rs " + priceList["985"]}`],
+              [`1320 UC - ${currency === "💵 USD" ? "$" + priceList["1320"] : "Rs " + priceList["1320"]}`],
+              [`1800 UC - ${currency === "💵 USD" ? "$" + priceList["1800"] : "Rs " + priceList["1800"]}`],
+              [`3850 UC - ${currency === "💵 USD" ? "$" + priceList["3850"] : "Rs " + priceList["3850"]}`],
+              [`8100 UC - ${currency === "💵 USD" ? "$" + priceList["8100"] : "Rs " + priceList["8100"]}`],
+              ["🔙 Back to Menu"]
+            ],
             resize_keyboard: true
           }
         });
@@ -261,131 +284,6 @@ if (text === "🎁 Gift Card & PUBG Voucher") {
     }
     return;
   }
-
-  // ===== SELECT UC =====
-  if (prices[text?.split(" ")[0]]) {
-    const uc = text.split(" ")[0];
-    user.package = uc;
-    users[chatId] = user;
-
-    const currency = user.currency;
-
-    let paymentButtons;
-
-    if (currency === "💵 USD") {
-      paymentButtons = [
-        ["💳 USDT (BEP20)", "💳 Binance Pay"],
-        ["🔙 Back to Menu"]
-      ];
-    } else {
-      paymentButtons = [
-        ["📱 Esewa", "🏦 Bank"],
-        ["💳 Khalti"],
-        ["🔙 Back to Menu"]
-      ];
-    }
-
-    bot.sendMessage(chatId, "💰 Choose payment method", {
-      reply_markup: {
-        keyboard: paymentButtons,
-        resize_keyboard: true
-      }
-    });
-
-    return;
-  }
-
-  // ===== PAYMENT =====
-  if (
-    ["📱 Esewa", "🏦 Bank", "💳 Khalti", "💳 Binance Pay"].includes(text)
-  ) {
-    user.awaitingPayment = true;
-    users[chatId] = user;
-
-    bot.sendMessage(chatId, "💰 Send payment then press Paid", {
-      reply_markup: {
-        keyboard: [
-          ["✅ Paid", "❌ Cancel Order"],
-          ["🔙 Back to Menu"]
-        ],
-        resize_keyboard: true
-      }
-    });
-    return;
-  }
-
-  if (text === "✅ Paid" && user.awaitingPayment) {
-    user.awaitingPayment = false;
-    user.awaitingScreenshot = true;
-    users[chatId] = user;
-
-    bot.sendMessage(chatId, "📸 Send payment screenshot");
-    return;
-  }
-
-  if (text === "❌ Cancel Order") {
-    users[chatId] = {};
-    bot.sendMessage(chatId, "❌ Order cancelled");
-    return;
-  }
-
-  // ===== SCREENSHOT =====
-  if (user.awaitingScreenshot && msg.photo) {
-    const orderId = Date.now();
-
-    orders[orderId] = {
-      userId: chatId,
-      name: user.name,
-      uid: user.uid,
-      uc: user.package,
-      price: prices[user.package],
-      status: "pending"
-    };
-
-    bot.sendPhoto(ADMIN_ID, msg.photo.at(-1).file_id, {
-      caption: `💰 Order
-
-👤 ${user.name}
-🆔 ${user.uid}
-💎 ${user.package}
-💰 Rs ${prices[user.package]}`,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: "✅ Confirm", callback_data: `ok_${orderId}` },
-            { text: "❌ Cancel", callback_data: `no_${orderId}` }
-          ]
-        ]
-      }
-    });
-
-    bot.sendMessage(chatId, "⏳ Waiting admin...");
-    return;
-  }
-});
-
-// ===== ADMIN =====
-bot.on("callback_query", async q => {
-  const [action, id] = q.data.split("_");
-  const order = orders[id];
-
-  if (!order) return;
-
-  if (action === "ok") {
-    history[order.userId].purchases.push(`${order.uc} UC`);
-    history[order.userId].topups.push(`${order.uc} UC`);
-    history[order.userId].transactions.push(
-      `Paid Rs ${order.price} for ${order.uc} UC`
-    );
-
-    bot.sendMessage(order.userId, "🎉 Order successful!");
-  }
-
-  if (action === "no") {
-    bot.sendMessage(order.userId, "❌ Order cancelled");
-  }
-
-  bot.answerCallbackQuery(q.id);
 });
 
 console.log("Bot running...");
