@@ -404,7 +404,6 @@ bot.on("callback_query", async q => {
   }
 
   bot.answerCallbackQuery(q.id);
-}
-);
+});
 
 console.log("Bot running...");
