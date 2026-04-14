@@ -147,60 +147,139 @@ bot.on("message", async msg => {
     return;
   }
 
-  // ===== NPR DEPOSIT =====
-  if (["📱 Esewa", "🏦 Bank", "💳 Khalti"].includes(text) && user.walletMode === "npr") {
-    user.awaitingWalletPayment = true;
-    users[chatId] = user;
+  // ===== NPR DEPOSIT METHOD =====
+if (["📱 Esewa", "🏦 Bank", "💳 Khalti"].includes(text) && user.walletMode === "npr") {
+  user.depositMethod = text;
+  user.awaitingAmount = true;
+  users[chatId] = user;
 
-    bot.sendMessage(chatId, "💰 Send payment and click Paid", {
-      reply_markup: {
-        keyboard: [
-          ["✅ Paid", "❌ Cancel Order"],
-          ["🔙 Back to Menu"]
-        ],
-        resize_keyboard: true
-      }
-    });
-    return;
+  bot.sendMessage(chatId, "💰 Enter amount you want to deposit (NPR):");
+  return;
+}
+
+// ===== ENTER AMOUNT =====
+if (user.awaitingAmount && !isNaN(text)) {
+  user.amount = parseInt(text);
+  user.awaitingAmount = false;
+  user.awaitingWalletPayment = true;
+  users[chatId] = user;
+
+  let details = "";
+
+  if (user.depositMethod === "📱 Esewa") {
+    details = "Esewa ID: YOUR_ESEWA_ID";
   }
 
-  if (text === "✅ Paid" && user.awaitingWalletPayment) {
-    user.awaitingWalletPayment = false;
-    user.awaitingWalletScreenshot = true;
-    users[chatId] = user;
-
-    bot.sendMessage(chatId, "📸 Send payment screenshot");
-    return;
+  if (user.depositMethod === "🏦 Bank") {
+    details = "Bank Account: YOUR_BANK_ACCOUNT";
   }
 
-  if (user.awaitingWalletScreenshot && msg.photo) {
-    user.awaitingWalletScreenshot = false;
+  if (user.depositMethod === "💳 Khalti") {
+    details = "Khalti ID: YOUR_KHALTI_ID";
+  }
 
-    const photo = msg.photo.at(-1).file_id;
-    const orderId = Date.now();
+  bot.sendMessage(chatId,
+`💰 Deposit NPR ${user.amount}
 
-    orders[orderId] = {
-      userId: chatId,
-      type: "wallet",
-      screenshot: photo
-    };
+${details}
 
-    bot.sendMessage(chatId, "⏳ Waiting verification...");
+After payment click Paid`, {
+    reply_markup: {
+      keyboard: [
+        ["✅ Paid", "❌ Cancel Order"],
+        ["🔙 Back to Menu"]
+      ],
+      resize_keyboard: true
+    }
+  });
 
-    bot.sendPhoto(ADMIN_ID, photo, {
-      caption: `💰 Wallet Deposit\nUser: ${chatId}`,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: "✅ Confirm", callback_data: `wallet_ok_${orderId}` },
-            { text: "❌ Cancel", callback_data: `wallet_no_${orderId}` }
-          ]
+  return;
+}
+
+// ===== PAID =====
+if (text === "✅ Paid" && user.awaitingWalletPayment) {
+  user.awaitingWalletPayment = false;
+  user.awaitingWalletScreenshot = true;
+  users[chatId] = user;
+
+  bot.sendMessage(chatId, "📸 Send payment screenshot");
+  return;
+}
+
+// ===== USER CANCEL BEFORE SCREENSHOT =====
+if (text === "❌ Cancel Order" && user.awaitingWalletPayment) {
+  user.awaitingWalletPayment = false;
+  users[chatId] = user;
+
+  bot.sendMessage(chatId, "❌ Deposit cancelled");
+
+  bot.sendMessage(ADMIN_ID, `❌ User cancelled deposit\nUser: ${chatId}`);
+
+  return;
+}
+
+// ===== SCREENSHOT =====
+if (user.awaitingWalletScreenshot && msg.photo) {
+  user.awaitingWalletScreenshot = false;
+
+  const photo = msg.photo.at(-1).file_id;
+  const orderId = Date.now();
+
+  orders[orderId] = {
+    userId: chatId,
+    type: "wallet",
+    amount: user.amount,
+    screenshot: photo,
+    status: "pending"
+  };
+
+  bot.sendMessage(chatId,
+`⏳ Screenshot received!
+
+Please wait 1–10 minutes`, {
+    reply_markup: {
+      keyboard: [
+        ["❌ I didn’t pay, cancel order"],
+        ["🔙 Back to Menu"]
+      ],
+      resize_keyboard: true
+    }
+  });
+
+  bot.sendPhoto(ADMIN_ID, photo, {
+    caption: `💰 Wallet Deposit
+
+👤 User: ${chatId}
+💵 Amount: Rs ${user.amount}`,
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: "✅ Confirm", callback_data: `wallet_ok_${orderId}` },
+          { text: "❌ Cancel", callback_data: `wallet_no_${orderId}` }
         ]
-      }
-    });
+      ]
+    }
+  });
 
-    return;
+  return;
+}
+
+// ===== USER CANCEL AFTER SCREENSHOT =====
+if (text === "❌ I didn’t pay, cancel order") {
+  const orderId = Object.keys(orders).find(
+    id => orders[id].userId === chatId && orders[id].status === "pending"
+  );
+
+  if (orderId) {
+    orders[orderId].status = "cancelled";
+
+    bot.sendMessage(chatId, "❌ Deposit cancelled");
+
+    bot.sendMessage(ADMIN_ID, `❌ User cancelled deposit\nOrder: ${orderId}`);
   }
+
+  return;
+}
 
   // ===== CURRENCY =====
   if (text === "🇳🇵 Nepali (NPR)" || text === "💵 USD") {
@@ -296,19 +375,36 @@ bot.on("callback_query", async q => {
   if (!order) return;
 
   if (type === "wallet") {
-    if (!wallets[order.userId]) wallets[order.userId] = { npr: 0, usd: 0 };
+  if (!order || order.status !== "pending") {
+    return bot.answerCallbackQuery(q.id, {
+      text: "Already handled",
+      show_alert: true
+    });
+  }
 
-    if (action === "ok") {
-      wallets[order.userId].npr += 100;
-      bot.sendMessage(order.userId, "✅ Deposit added");
-    }
+  if (!wallets[order.userId]) {
+    wallets[order.userId] = { npr: 0, usd: 0 };
+  }
 
-    if (action === "no") {
-      bot.sendMessage(order.userId, "❌ Deposit rejected");
-    }
+  if (action === "ok") {
+    order.status = "approved";
+
+    wallets[order.userId].npr += order.amount;
+
+    bot.sendMessage(order.userId,
+`✅ Deposit successful!
+
+💵 Rs ${order.amount} added to wallet`);
+  }
+
+  if (action === "no") {
+    order.status = "cancelled";
+
+    bot.sendMessage(order.userId, "❌ Deposit rejected");
   }
 
   bot.answerCallbackQuery(q.id);
-});
+}
+);
 
 console.log("Bot running...");
