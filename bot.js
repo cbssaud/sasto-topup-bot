@@ -11,6 +11,7 @@ const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 let users = {};
 let orders = {};
 let history = {};
+let wallets = {};
 
 // ===== PRICES (NPR) =====
 const prices = {
@@ -132,10 +133,72 @@ bot.on("message", async msg => {
     return;
   }
 
-  if (text === "📄 Transactions") {
-    bot.sendMessage(chatId, history[chatId].transactions.join("\n") || "No transactions");
-    return;
+ // ===== WALLET =====
+if (text === "💰 My Wallet") {
+  if (!wallets[chatId]) {
+    wallets[chatId] = { npr: 0, usd: 0 };
   }
+
+  bot.sendMessage(chatId, "💼 Choose Wallet Type:", {
+    reply_markup: {
+      keyboard: [
+        ["🇳🇵 NPR Wallet", "💵 USD Wallet"],
+        ["🔙 Back to Menu"]
+      ],
+      resize_keyboard: true
+    }
+  });
+  return;
+}
+
+// ===== NPR WALLET =====
+if (text === "🇳🇵 NPR Wallet") {
+  const balance = wallets[chatId]?.npr || 0;
+
+  bot.sendMessage(chatId, `💰 NPR Wallet
+
+👤 ID: ${chatId}
+💵 Balance: Rs ${balance}
+
+➕ Deposit Options:
+📱 Esewa
+🏦 Bank
+💳 Khalti`, {
+    reply_markup: {
+      keyboard: [
+        ["📱 Esewa", "🏦 Bank"],
+        ["💳 Khalti"],
+        ["🔙 Back to Menu"]
+      ],
+      resize_keyboard: true
+    }
+  });
+  return;
+}
+
+// ===== USD WALLET =====
+if (text === "💵 USD Wallet") {
+  const balance = wallets[chatId]?.usd || 0;
+
+  bot.sendMessage(chatId, `💰 USD Wallet
+
+👤 ID: ${chatId}
+💵 Balance: $${balance}
+
+➕ Deposit Options:
+💳 Binance Pay (Manual Verify)
+💳 USDT (BEP20) - Instant Auto`, {
+    reply_markup: {
+      keyboard: [
+        ["💳 Binance Pay", "💳 USDT (BEP20)"],
+        ["🔙 Back to Menu"]
+      ],
+      resize_keyboard: true
+    }
+  });
+  return;
+}
+
 
   if (text === "💰 My Wallet") {
     bot.sendMessage(chatId, "💰 Wallet coming soon");
