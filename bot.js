@@ -28,7 +28,12 @@ bot.onText(/\/start/, msg => {
   const chatId = msg.chat.id;
   users[chatId] = {};
 
-  bot.sendMessage(chatId, `🎉 Welcome to Sasto TopUp Bot`, {
+  bot.sendMessage(chatId, `🎉 Welcome to Sasto TopUp Bot
+
+⚡ Fast & Cheap Gaming Topup
+🔒 Secure Payment
+
+👇 Choose option`, {
     reply_markup: {
       keyboard: [
         ["🎮 Game Top-Ups", "🎁 Gift Card & PUBG Voucher"],
@@ -47,6 +52,62 @@ bot.on("message", async msg => {
 
   if (!history[chatId]) {
     history[chatId] = { purchases: [], topups: [], transactions: [] };
+  }
+
+  // ===== MENU =====
+  if (text === "🔙 Back to Menu") {
+    users[chatId] = {};
+    bot.sendMessage(chatId, "🏠 Main Menu", {
+      reply_markup: {
+        keyboard: [
+          ["🎮 Game Top-Ups", "🎁 Gift Card & PUBG Voucher"],
+          ["👤 My Account", "📞 Support"]
+        ],
+        resize_keyboard: true
+      }
+    });
+    return;
+  }
+
+  // ===== SUPPORT =====
+  if (text === "📞 Support") {
+    bot.sendMessage(chatId, "📞 Contact: @SastoTopUpCenter");
+    return;
+  }
+
+  // ===== ACCOUNT =====
+  if (text === "👤 My Account") {
+    bot.sendMessage(chatId, "👤 My Account", {
+      reply_markup: {
+        keyboard: [
+          ["🛒 My Purchases", "🎮 My TopUps"],
+          ["📄 Transactions", "💰 My Wallet"],
+          ["🔙 Back to Menu"]
+        ],
+        resize_keyboard: true
+      }
+    });
+    return;
+  }
+
+  if (text === "🛒 My Purchases") {
+    bot.sendMessage(chatId, history[chatId].purchases.join("\n") || "No purchases");
+    return;
+  }
+
+  if (text === "🎮 My TopUps") {
+    bot.sendMessage(chatId, history[chatId].topups.join("\n") || "No topups");
+    return;
+  }
+
+  if (text === "📄 Transactions") {
+    bot.sendMessage(chatId, history[chatId].transactions.join("\n") || "No transactions");
+    return;
+  }
+
+  if (text === "💰 My Wallet") {
+    bot.sendMessage(chatId, "💰 Wallet coming soon");
+    return;
   }
 
   // ===== CURRENCY SELECT =====
@@ -72,6 +133,8 @@ bot.on("message", async msg => {
       reply_markup: {
         keyboard: [
           ["🎯 PUBGM UC & Items"],
+          ["🗡 Mobile Legends", "🔥 Free Fire"],
+          ["🛡 Honor of Kings", "🎮 More Games"],
           ["🔙 Back to Menu"]
         ],
         resize_keyboard: true
@@ -80,38 +143,28 @@ bot.on("message", async msg => {
     return;
   }
 
-  // ===== GIFT CATEGORY =====
-  if (text === "🎁 Gift Card & PUBG Voucher") {
-    bot.sendMessage(chatId, "🎁 Select Category:", {
-      reply_markup: {
-        keyboard: [
-          ["🎯 PUBG UC Voucher"],
-          ["🍎 iTunes", "🔥 Free Fire"],
-          ["🔙 Back to Menu"]
-        ],
-        resize_keyboard: true
-      }
-    });
+  // ===== OTHER GAMES =====
+  if (
+    text === "🗡 Mobile Legends" ||
+    text === "🔥 Free Fire" ||
+    text === "🛡 Honor of Kings" ||
+    text === "🎮 More Games"
+  ) {
+    bot.sendMessage(chatId, "🚧 Coming soon...");
     return;
   }
 
-  if (text === "🎯 PUBG UC Voucher") {
-    bot.sendMessage(chatId, "🎯 Select PUBG Voucher:", {
-      reply_markup: {
-        keyboard: [
-          ["60 UC - Rs 140"],
-          ["325 UC - Rs 720"],
-          ["1800 UC - Rs 3680"],
-          ["🔙 Back to Menu"]
-        ],
-        resize_keyboard: true
-      }
-    });
+  // ===== PUBG =====
+  if (text === "🎯 PUBGM UC & Items") {
+    user.waitingUID = true;
+    users[chatId] = user;
+
+    bot.sendMessage(chatId, "👉 Send your PUBG UID");
     return;
   }
 
   // ===== VERIFY UID =====
-  if (!user.uid && text && !text.startsWith("/")) {
+  if (user.waitingUID && text && !text.startsWith("/")) {
     try {
       const res = await axios.post(
         "https://api.g2bulk.com/v1/games/checkPlayerId",
@@ -121,9 +174,10 @@ bot.on("message", async msg => {
       if (res.data.valid === "valid") {
         user.uid = text;
         user.name = res.data.name;
+        user.waitingUID = false;
         users[chatId] = user;
 
-        const currency = user.currency || "🇳🇵 Nepali (NPR)";
+        const currency = user.currency;
 
         let priceList = prices;
 
@@ -139,7 +193,10 @@ bot.on("message", async msg => {
           };
         }
 
-        bot.sendMessage(chatId, `✅ Player: ${user.name}`, {
+        bot.sendMessage(chatId, `✅ Player: ${user.name}
+🆔 ${user.uid}
+
+💎 Select UC`, {
           reply_markup: {
             keyboard: [
               [`60 UC - ${currency === "💵 USD" ? "$" + priceList["60"] : "Rs " + priceList["60"]}`],
@@ -153,8 +210,9 @@ bot.on("message", async msg => {
       } else {
         bot.sendMessage(chatId, "❌ Invalid UID");
       }
+
     } catch {
-      bot.sendMessage(chatId, "❌ Error");
+      bot.sendMessage(chatId, "❌ Error verifying UID");
     }
     return;
   }
@@ -192,23 +250,22 @@ bot.on("message", async msg => {
     return;
   }
 
-  // ===== USD PAYMENT =====
-  if (user.currency === "💵 USD") {
-    if (text === "💳 Binance Pay") {
-      user.awaitingPayment = true;
-      users[chatId] = user;
-
-      bot.sendMessage(chatId, "Send Binance Pay then press Paid");
-      return;
-    }
-  }
-
-  // ===== NPR PAYMENT =====
-  if (["📱 Esewa", "🏦 Bank", "💳 Khalti"].includes(text)) {
+  // ===== PAYMENT =====
+  if (
+    ["📱 Esewa", "🏦 Bank", "💳 Khalti", "💳 Binance Pay"].includes(text)
+  ) {
     user.awaitingPayment = true;
     users[chatId] = user;
 
-    bot.sendMessage(chatId, "Send payment then press Paid");
+    bot.sendMessage(chatId, "💰 Send payment then press Paid", {
+      reply_markup: {
+        keyboard: [
+          ["✅ Paid", "❌ Cancel Order"],
+          ["🔙 Back to Menu"]
+        ],
+        resize_keyboard: true
+      }
+    });
     return;
   }
 
@@ -217,33 +274,48 @@ bot.on("message", async msg => {
     user.awaitingScreenshot = true;
     users[chatId] = user;
 
-    bot.sendMessage(chatId, "📸 Send screenshot");
+    bot.sendMessage(chatId, "📸 Send payment screenshot");
     return;
   }
 
+  if (text === "❌ Cancel Order") {
+    users[chatId] = {};
+    bot.sendMessage(chatId, "❌ Order cancelled");
+    return;
+  }
+
+  // ===== SCREENSHOT =====
   if (user.awaitingScreenshot && msg.photo) {
     const orderId = Date.now();
 
     orders[orderId] = {
       userId: chatId,
+      name: user.name,
       uid: user.uid,
       uc: user.package,
+      price: prices[user.package],
       status: "pending"
     };
 
-    bot.sendPhoto(ADMIN_ID, msg.photo[0].file_id, {
-      caption: `Order ${orderId}`,
+    bot.sendPhoto(ADMIN_ID, msg.photo.at(-1).file_id, {
+      caption: `💰 Order
+
+👤 ${user.name}
+🆔 ${user.uid}
+💎 ${user.package}
+💰 Rs ${prices[user.package]}`,
       reply_markup: {
         inline_keyboard: [
           [
-            { text: "OK", callback_data: `ok_${orderId}` },
-            { text: "NO", callback_data: `no_${orderId}` }
+            { text: "✅ Confirm", callback_data: `ok_${orderId}` },
+            { text: "❌ Cancel", callback_data: `no_${orderId}` }
           ]
         ]
       }
     });
 
     bot.sendMessage(chatId, "⏳ Waiting admin...");
+    return;
   }
 });
 
@@ -252,13 +324,23 @@ bot.on("callback_query", async q => {
   const [action, id] = q.data.split("_");
   const order = orders[id];
 
+  if (!order) return;
+
   if (action === "ok") {
-    bot.sendMessage(order.userId, "✅ Delivered");
+    history[order.userId].purchases.push(`${order.uc} UC`);
+    history[order.userId].topups.push(`${order.uc} UC`);
+    history[order.userId].transactions.push(
+      `Paid Rs ${order.price} for ${order.uc} UC`
+    );
+
+    bot.sendMessage(order.userId, "🎉 Order successful!");
   }
 
   if (action === "no") {
-    bot.sendMessage(order.userId, "❌ Cancelled");
+    bot.sendMessage(order.userId, "❌ Order cancelled");
   }
 
   bot.answerCallbackQuery(q.id);
 });
+
+console.log("Bot running...");
