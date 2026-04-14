@@ -13,7 +13,6 @@ let orders = {};
 let history = {};
 let wallets = {};
 
-const ADMIN_ID = YOUR_TELEGRAM_ID; // 🔥 PUT YOUR TELEGRAM ID HERE
 
 // ===== PRICES (NPR) =====
 const prices = {
