@@ -199,10 +199,24 @@ bot.on("message", async msg => {
 💎 Select UC`, {
           reply_markup: {
             keyboard: [
-              [`60 UC - ${currency === "💵 USD" ? "$" + priceList["60"] : "Rs " + priceList["60"]}`],
-              [`325 UC - ${currency === "💵 USD" ? "$" + priceList["325"] : "Rs " + priceList["325"]}`],
-              ["🔙 Back to Menu"]
-            ],
+  [
+    `60 UC - ${currency === "💵 USD" ? "$" + priceList["60"] : "Rs " + priceList["60"]}`,
+    `325 UC - ${currency === "💵 USD" ? "$" + priceList["325"] : "Rs " + priceList["325"]}`
+  ],
+  [
+    `985 UC - ${currency === "💵 USD" ? "$" + priceList["985"] : "Rs " + priceList["985"]}`,
+    `1320 UC - ${currency === "💵 USD" ? "$" + priceList["1320"] : "Rs " + priceList["1320"]}`
+  ],
+  [
+    `1800 UC - ${currency === "💵 USD" ? "$" + priceList["1800"] : "Rs " + priceList["1800"]}`
+  ],
+  [
+    `3850 UC - ${currency === "💵 USD" ? "$" + priceList["3850"] : "Rs " + priceList["3850"]}`,
+    `8100 UC - ${currency === "💵 USD" ? "$" + priceList["8100"] : "Rs " + priceList["8100"]}`
+  ],
+  ["🔙 Back to Menu"]
+]
+,
             resize_keyboard: true
           }
         });
