@@ -68,6 +68,37 @@ bot.on("message", async msg => {
     });
     return;
   }
+// ===== GAME TOPUP =====
+if (text === "🎮 Game Top-Ups") {
+  users[chatId] = { mode: "topup" };
+
+  bot.sendMessage(chatId, "💱 Choose Currency:", {
+    reply_markup: {
+      keyboard: [
+        ["🇳🇵 Nepali (NPR)", "💵 USD"],
+        ["🔙 Back to Menu"]
+      ],
+      resize_keyboard: true
+    }
+  });
+  return;
+}
+
+// ===== GIFT / VOUCHER =====
+if (text === "🎁 Gift Card & PUBG Voucher") {
+  users[chatId] = { mode: "voucher" };
+
+  bot.sendMessage(chatId, "💱 Choose Currency:", {
+    reply_markup: {
+      keyboard: [
+        ["🇳🇵 Nepali (NPR)", "💵 USD"],
+        ["🔙 Back to Menu"]
+      ],
+      resize_keyboard: true
+    }
+  });
+  return;
+}
 
   // ===== SUPPORT =====
   if (text === "📞 Support") {
