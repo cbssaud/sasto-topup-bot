@@ -81,6 +81,31 @@ bot.on("message", async msg => {
   }
 
   if (text === "🎁 Gift Card & PUBG Voucher") {
+  users[chatId] = { mode: "voucher" };
+
+  bot.sendMessage(chatId, `🎁 Here are our GiftCards & Vouchers categories
+
+📄 Page 1/1 | Total Categories: 10`, {
+    reply_markup: {
+      keyboard: [
+        ["🎯 PUBG MOBILE UC Vouchers"],
+        ["💳 RAZER Gold Accounts"],
+        ["🍎 iTunes USA"],
+        ["🎮 RAZER Gold GiftCards"],
+        ["🎮 PlayStation GiftCards"],
+        ["🔥 Free Fire Vouchers"],
+        ["🎲 Yalla Ludo"],
+        ["🆕 New State Mobile"],
+        ["🎴 Jawaker GiftCards"],
+        ["📱 IMO GiftCards"],
+        ["🔙 Back to Menu"]
+      ],
+      resize_keyboard: true
+    }
+  });
+
+  return;
+}
     users[chatId] = { mode: "voucher" };
   }
 
