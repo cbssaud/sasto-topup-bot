@@ -369,41 +369,50 @@ if (text === "❌ I didn’t pay, cancel order") {
 
 // ===== ADMIN =====
 bot.on("callback_query", async q => {
-  const [type, action, id] = q.data.split("_");
+  const data = q.data.split("_");
+
+  const type = data[0]; // wallet
+  const action = data[1]; // ok / no
+  const id = data[2]; // orderId
+
   const order = orders[id];
 
   if (!order) return;
 
+  // ===== WALLET SYSTEM =====
   if (type === "wallet") {
-  if (!order || order.status !== "pending") {
-    return bot.answerCallbackQuery(q.id, {
-      text: "Already handled",
-      show_alert: true
-    });
-  }
 
-  if (!wallets[order.userId]) {
-    wallets[order.userId] = { npr: 0, usd: 0 };
-  }
+    if (order.status !== "pending") {
+      return bot.answerCallbackQuery(q.id, {
+        text: "Already handled",
+        show_alert: true
+      });
+    }
 
-  if (action === "ok") {
-    order.status = "approved";
+    if (!wallets[order.userId]) {
+      wallets[order.userId] = { npr: 0, usd: 0 };
+    }
 
-    wallets[order.userId].npr += order.amount;
+    // ✅ CONFIRM
+    if (action === "ok") {
+      order.status = "approved";
 
-    bot.sendMessage(order.userId,
+      wallets[order.userId].npr += order.amount;
+
+      bot.sendMessage(order.userId,
 `✅ Deposit successful!
 
-💵 Rs ${order.amount} added to wallet`);
+💰 Rs ${order.amount} added to wallet`);
+    }
+
+    // ❌ CANCEL
+    if (action === "no") {
+      order.status = "cancelled";
+
+      bot.sendMessage(order.userId, "❌ Deposit rejected");
+    }
+
+    bot.answerCallbackQuery(q.id);
+    return;
   }
-
-  if (action === "no") {
-    order.status = "cancelled";
-
-    bot.sendMessage(order.userId, "❌ Deposit rejected");
-  }
-
-  bot.answerCallbackQuery(q.id);
 });
-
-console.log("Bot running...");
