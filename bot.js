@@ -70,41 +70,26 @@ bot.on("message", async msg => {
     return;
   }
 
-  // ===== GAME TOPUP MODE =====
+  // ===== MODES =====
   if (text === "🎮 Game Top-Ups") {
     users[chatId] = { mode: "topup" };
-
     bot.sendMessage(chatId, "💱 Choose Currency:", {
       reply_markup: {
-        keyboard: [
-          ["🇳🇵 Nepali (NPR)", "💵 USD"],
-          ["🔙 Back to Menu"]
-        ],
+        keyboard: [["🇳🇵 Nepali (NPR)", "💵 USD"], ["🔙 Back to Menu"]],
         resize_keyboard: true
       }
     });
     return;
   }
 
-  // ===== VOUCHER MODE =====
   if (text === "🎁 Gift Card & PUBG Voucher") {
     users[chatId] = { mode: "voucher" };
-
     bot.sendMessage(chatId, "💱 Choose Currency:", {
       reply_markup: {
-        keyboard: [
-          ["🇳🇵 Nepali (NPR)", "💵 USD"],
-          ["🔙 Back to Menu"]
-        ],
+        keyboard: [["🇳🇵 Nepali (NPR)", "💵 USD"], ["🔙 Back to Menu"]],
         resize_keyboard: true
       }
     });
-    return;
-  }
-
-  // ===== SUPPORT =====
-  if (text === "📞 Support") {
-    bot.sendMessage(chatId, "📞 Contact: @SastoTopUpCenter");
     return;
   }
 
@@ -123,85 +108,97 @@ bot.on("message", async msg => {
     return;
   }
 
-  if (text === "🛒 My Purchases") {
-    bot.sendMessage(chatId, history[chatId].purchases.join("\n") || "No purchases");
-    return;
-  }
-
-  if (text === "🎮 My TopUps") {
-    bot.sendMessage(chatId, history[chatId].topups.join("\n") || "No topups");
-    return;
-  }
-
- // ===== WALLET =====
-if (text === "💰 My Wallet") {
-  if (!wallets[chatId]) {
-    wallets[chatId] = { npr: 0, usd: 0 };
-  }
-
-  bot.sendMessage(chatId, "💼 Choose Wallet Type:", {
-    reply_markup: {
-      keyboard: [
-        ["🇳🇵 NPR Wallet", "💵 USD Wallet"],
-        ["🔙 Back to Menu"]
-      ],
-      resize_keyboard: true
-    }
-  });
-  return;
-}
-
-// ===== NPR WALLET =====
-if (text === "🇳🇵 NPR Wallet") {
-  const balance = wallets[chatId]?.npr || 0;
-
-  bot.sendMessage(chatId, `💰 NPR Wallet
-
-👤 ID: ${chatId}
-💵 Balance: Rs ${balance}
-
-➕ Deposit Options:
-📱 Esewa
-🏦 Bank
-💳 Khalti`, {
-    reply_markup: {
-      keyboard: [
-        ["📱 Esewa", "🏦 Bank"],
-        ["💳 Khalti"],
-        ["🔙 Back to Menu"]
-      ],
-      resize_keyboard: true
-    }
-  });
-  return;
-}
-
-// ===== USD WALLET =====
-if (text === "💵 USD Wallet") {
-  const balance = wallets[chatId]?.usd || 0;
-
-  bot.sendMessage(chatId, `💰 USD Wallet
-
-👤 ID: ${chatId}
-💵 Balance: $${balance}
-
-➕ Deposit Options:
-💳 Binance Pay (Manual Verify)
-💳 USDT (BEP20) - Instant Auto`, {
-    reply_markup: {
-      keyboard: [
-        ["💳 Binance Pay", "💳 USDT (BEP20)"],
-        ["🔙 Back to Menu"]
-      ],
-      resize_keyboard: true
-    }
-  });
-  return;
-}
-
-
+  // ===== WALLET MENU =====
   if (text === "💰 My Wallet") {
-    bot.sendMessage(chatId, "💰 Wallet coming soon");
+    if (!wallets[chatId]) wallets[chatId] = { npr: 0, usd: 0 };
+
+    bot.sendMessage(chatId, "💼 Choose Wallet Type:", {
+      reply_markup: {
+        keyboard: [
+          ["🇳🇵 NPR Wallet", "💵 USD Wallet"],
+          ["🔙 Back to Menu"]
+        ],
+        resize_keyboard: true
+      }
+    });
+    return;
+  }
+
+  // ===== NPR WALLET =====
+  if (text === "🇳🇵 NPR Wallet") {
+    user.walletMode = "npr";
+    users[chatId] = user;
+
+    const balance = wallets[chatId]?.npr || 0;
+
+    bot.sendMessage(chatId, `💰 NPR Wallet
+
+👤 ID: ${chatId}
+💵 Balance: Rs ${balance}`, {
+      reply_markup: {
+        keyboard: [
+          ["📱 Esewa", "🏦 Bank"],
+          ["💳 Khalti"],
+          ["🔙 Back to Menu"]
+        ],
+        resize_keyboard: true
+      }
+    });
+    return;
+  }
+
+  // ===== NPR DEPOSIT =====
+  if (["📱 Esewa", "🏦 Bank", "💳 Khalti"].includes(text) && user.walletMode === "npr") {
+    user.awaitingWalletPayment = true;
+    users[chatId] = user;
+
+    bot.sendMessage(chatId, "💰 Send payment and click Paid", {
+      reply_markup: {
+        keyboard: [
+          ["✅ Paid", "❌ Cancel Order"],
+          ["🔙 Back to Menu"]
+        ],
+        resize_keyboard: true
+      }
+    });
+    return;
+  }
+
+  if (text === "✅ Paid" && user.awaitingWalletPayment) {
+    user.awaitingWalletPayment = false;
+    user.awaitingWalletScreenshot = true;
+    users[chatId] = user;
+
+    bot.sendMessage(chatId, "📸 Send payment screenshot");
+    return;
+  }
+
+  if (user.awaitingWalletScreenshot && msg.photo) {
+    user.awaitingWalletScreenshot = false;
+
+    const photo = msg.photo.at(-1).file_id;
+    const orderId = Date.now();
+
+    orders[orderId] = {
+      userId: chatId,
+      type: "wallet",
+      screenshot: photo
+    };
+
+    bot.sendMessage(chatId, "⏳ Waiting verification...");
+
+    bot.sendPhoto(ADMIN_ID, photo, {
+      caption: `💰 Wallet Deposit\nUser: ${chatId}`,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "✅ Confirm", callback_data: `wallet_ok_${orderId}` },
+            { text: "❌ Cancel", callback_data: `wallet_no_${orderId}` }
+          ]
+        ]
+      }
+    });
+
     return;
   }
 
@@ -224,129 +221,94 @@ if (text === "💵 USD Wallet") {
     return;
   }
 
-  // ===== OTHER GAMES =====
-  if (
-    text === "🗡 Mobile Legends" ||
-    text === "🔥 Free Fire" ||
-    text === "🛡 Honor of Kings" ||
-    text === "🎮 More Games"
-  ) {
-    bot.sendMessage(chatId, "🚧 Coming soon...");
-    return;
-  }
-
   // ===== PUBG =====
   if (text === "🎯 PUBGM UC & Items") {
-
-    // 🎁 VOUCHER MODE → NO UID
     if (user.mode === "voucher") {
-      const currency = user.currency;
-      let priceList = prices;
-
-      if (currency === "💵 USD") {
-        priceList = {
-          "60": "0.93",
-          "325": "4.65",
-          "985": "13.70",
-          "1320": "18.90",
-          "1800": "24.00",
-          "3850": "45.00",
-          "8100": "88.00"
-        };
-      }
-
-      bot.sendMessage(chatId, "🎫 PUBG UC Voucher List:", {
-        reply_markup: {
-          keyboard: [
-            [
-              `60 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["60"] : "Rs " + priceList["60"]}`,
-              `325 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["325"] : "Rs " + priceList["325"]}`
-            ],
-            [
-              `985 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["985"] : "Rs " + priceList["985"]}`,
-              `1320 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["1320"] : "Rs " + priceList["1320"]}`
-            ],
-            [
-              `1800 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["1800"] : "Rs " + priceList["1800"]}`
-            ],
-            [
-              `3850 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["3850"] : "Rs " + priceList["3850"]}`,
-              `8100 UC Voucher - ${currency === "💵 USD" ? "$" + priceList["8100"] : "Rs " + priceList["8100"]}`
-            ],
-            ["🔙 Back to Menu"]
-          ],
-          resize_keyboard: true
-        }
-      });
-
+      bot.sendMessage(chatId, "🎫 Voucher list coming soon...");
       return;
     }
 
-    // 🎮 TOPUP MODE → ASK UID
     user.waitingUID = true;
     users[chatId] = user;
-
     bot.sendMessage(chatId, "👉 Send your PUBG UID");
     return;
   }
 
   // ===== VERIFY UID =====
   if (user.waitingUID && text && !text.startsWith("/")) {
-    try {
-      const res = await axios.post(
-        "https://api.g2bulk.com/v1/games/checkPlayerId",
-        { game: "pubgm", user_id: text }
-      );
+    user.uid = text;
+    user.name = "Player";
+    user.waitingUID = false;
+    users[chatId] = user;
 
-      if (res.data.valid === "valid") {
-        user.uid = text;
-        user.name = res.data.name;
-        user.waitingUID = false;
-        users[chatId] = user;
-
-        const currency = user.currency;
-        let priceList = prices;
-
-        if (currency === "💵 USD") {
-          priceList = {
-            "60": "0.93",
-            "325": "4.65",
-            "985": "13.70",
-            "1320": "18.90",
-            "1800": "24.00",
-            "3850": "45.00",
-            "8100": "88.00"
-          };
-        }
-
-        bot.sendMessage(chatId, `✅ Player: ${user.name}
-🆔 ${user.uid}
-
-💎 Select UC`, {
-          reply_markup: {
-            keyboard: [
-              [`60 UC - ${currency === "💵 USD" ? "$" + priceList["60"] : "Rs " + priceList["60"]}`],
-              [`325 UC - ${currency === "💵 USD" ? "$" + priceList["325"] : "Rs " + priceList["325"]}`],
-              [`985 UC - ${currency === "💵 USD" ? "$" + priceList["985"] : "Rs " + priceList["985"]}`],
-              [`1320 UC - ${currency === "💵 USD" ? "$" + priceList["1320"] : "Rs " + priceList["1320"]}`],
-              [`1800 UC - ${currency === "💵 USD" ? "$" + priceList["1800"] : "Rs " + priceList["1800"]}`],
-              [`3850 UC - ${currency === "💵 USD" ? "$" + priceList["3850"] : "Rs " + priceList["3850"]}`],
-              [`8100 UC - ${currency === "💵 USD" ? "$" + priceList["8100"] : "Rs " + priceList["8100"]}`],
-              ["🔙 Back to Menu"]
-            ],
-            resize_keyboard: true
-          }
-        });
-
-      } else {
-        bot.sendMessage(chatId, "❌ Invalid UID");
+    bot.sendMessage(chatId, "💎 Select UC", {
+      reply_markup: {
+        keyboard: [
+          ["60 UC", "325 UC"],
+          ["985 UC", "1320 UC"],
+          ["1800 UC"],
+          ["3850 UC", "8100 UC"],
+          ["🔙 Back to Menu"]
+        ],
+        resize_keyboard: true
       }
-
-    } catch {
-      bot.sendMessage(chatId, "❌ Error verifying UID");
-    }
+    });
     return;
   }
+
+  // ===== UC BUY WITH WALLET =====
+  if (prices[text?.split(" ")[0]]) {
+    const uc = text.split(" ")[0];
+    const price = prices[uc];
+
+    if (!wallets[chatId]) wallets[chatId] = { npr: 0, usd: 0 };
+
+    const balance = wallets[chatId].npr;
+
+    if (balance < price) {
+      bot.sendMessage(chatId,
+`❌ Insufficient Balance!
+
+💰 Your Balance: Rs ${balance}
+💵 Required Amount: Rs ${price}
+
+👉 Please add money to your wallet and try again.`, {
+        reply_markup: {
+          keyboard: [["💰 My Wallet"], ["🔙 Back to Menu"]],
+          resize_keyboard: true
+        }
+      });
+      return;
+    }
+
+    wallets[chatId].npr -= price;
+
+    bot.sendMessage(chatId, "✅ Order placed! Balance deducted");
+    return;
+  }
+});
+
+// ===== ADMIN =====
+bot.on("callback_query", async q => {
+  const [type, action, id] = q.data.split("_");
+  const order = orders[id];
+
+  if (!order) return;
+
+  if (type === "wallet") {
+    if (!wallets[order.userId]) wallets[order.userId] = { npr: 0, usd: 0 };
+
+    if (action === "ok") {
+      wallets[order.userId].npr += 100;
+      bot.sendMessage(order.userId, "✅ Deposit added");
+    }
+
+    if (action === "no") {
+      bot.sendMessage(order.userId, "❌ Deposit rejected");
+    }
+  }
+
+  bot.answerCallbackQuery(q.id);
 });
 
 console.log("Bot running...");
