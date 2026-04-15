@@ -576,6 +576,7 @@ if (prices[text?.split(" ")[0]]) {
 
   return;
 }
+});
 
 // ===== ADMIN =====
 
