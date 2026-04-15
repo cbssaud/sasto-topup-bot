@@ -15,6 +15,7 @@ let wallets = {};
 
 
 // ===== PRICES (NPR) =====
+
 const prices = {
   "60": 140,
   "325": 720,
