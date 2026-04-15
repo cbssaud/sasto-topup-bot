@@ -498,17 +498,25 @@ bot.sendMessage(chatId,
 
 // 🔥 CALL G2BULK API HERE
 try {
-  const response = await axios.post("YOUR_G2BULK_API_URL", {
-    uid: user.uid,
-    product: uc,
-    region: "np" // or your region
-  }, {
-    headers: {
-      Authorization: "Bearer YOUR_API_KEY"
+  const response = await axios.post(
+    "https://api.g2bulk.com/v1/games/pubgm/order",
+    {
+      catalogue_name: `${uc} UC`,
+      player_id: user.uid.toString()
+    },
+    {
+      headers: {
+        "X-API-Key": API_KEY,
+        "Content-Type": "application/json"
+      }
     }
-  });
+  );
 
-  console.log(response.data);
+  console.log("API RESPONSE:", response.data);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message);
+  }
 
   // ✅ SUCCESS
   bot.sendMessage(chatId,
@@ -516,12 +524,11 @@ try {
 
 💎 ${uc} UC sent to UID: ${user.uid}
 
-⏳ Please wait 1–3 minutes to receive in game.
+⏳ Please wait 1–3 minutes
 
 ❤️ Thank you for choosing Sasto TopUp Center`
   );
 
-  // 🔔 ADMIN NOTIFY
   bot.sendMessage(ADMIN_ID,
 `✅ UC Delivered
 
@@ -533,16 +540,16 @@ try {
   );
 
 } catch (error) {
-  console.log(error.response?.data || error.message);
+  console.log("ERROR:", error.response?.data || error.message);
 
-  // ❌ FAILED
   bot.sendMessage(chatId,
 `❌ Order Failed!
 
-Please contact support: @SastoTopUpCenter`
+💰 Rs ${price} refunded
+
+📞 Support: @SastoTopUpCenter`
   );
 
-  // refund
   wallets[chatId].npr += price;
 }
 
