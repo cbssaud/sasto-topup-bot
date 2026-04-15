@@ -477,24 +477,15 @@ if (
   
 if (prices[text?.split(" ")[0]]) {
   const uc = text.split(" ")[0];
-  const price = prices[uc];
+const price = prices[uc];
 
-  const orderId = Date.now();
+// deduct balance
+wallets[chatId].npr -= price;
 
-  // save order
-  orders[orderId] = {
-    userId: chatId,
-    uid: user.uid,
-    uc: uc,
-    price: price,
-    status: "processing"
-  };
+// create order
+const orderId = Date.now();
 
-  // deduct balance
-  wallets[chatId].npr -= price;
-
-  // send processing message
-  bot.sendMessage(chatId,
+bot.sendMessage(chatId,
 `🧾 Order Confirmed
 
 🆔 Order ID: ${orderId}
@@ -502,65 +493,58 @@ if (prices[text?.split(" ")[0]]) {
 💎 UC: ${uc}
 💰 Price: Rs ${price}
 
-⏳ Status: Processing...`,
-{
-  reply_markup: {
-    keyboard: [
-      ["🔁 More Order"],
-      ["🔙 Back to Menu"]
-    ],
-    resize_keyboard: true
-  }
-});
+⏳ Status: Processing...`
+);
 
-// 🔥 PREMIUM ANIMATION DELIVERY
-
-const msg1 = await bot.sendMessage(chatId, "⏳ Processing your order...");
-
-setTimeout(() => {
-  bot.editMessageText("🔄 Verifying payment...", {
-    chat_id: chatId,
-    message_id: msg1.message_id
+// 🔥 CALL G2BULK API HERE
+try {
+  const response = await axios.post("YOUR_G2BULK_API_URL", {
+    uid: user.uid,
+    product: uc,
+    region: "np" // or your region
+  }, {
+    headers: {
+      Authorization: "Bearer YOUR_API_KEY"
+    }
   });
-}, 2000);
 
-setTimeout(() => {
-  bot.editMessageText("📡 Sending UC to your PUBG account...", {
-    chat_id: chatId,
-    message_id: msg1.message_id
-  });
-}, 5000);
+  console.log(response.data);
 
-setTimeout(() => {
-
-  orders[orderId].status = "completed";
-
-  bot.editMessageText(
+  // ✅ SUCCESS
+  bot.sendMessage(chatId,
 `🎉 UC Delivered Successfully!
 
-🆔 Order ID: ${orderId}
-💎 ${uc} UC
+💎 ${uc} UC sent to UID: ${user.uid}
 
-📥 Your UC has been successfully processed.
+⏳ Please wait 1–3 minutes to receive in game.
 
-⏱ Please wait 1–3 minutes for the UC to be credited to your PUBG account.
+❤️ Thank you for choosing Sasto TopUp Center`
+  );
 
-📞 If not received within 5 minutes, contact support: @SastoTopUpCenter
-
-🙏 Thank you for choosing Sasto TopUp Center ❤️`,
-  {
-    chat_id: chatId,
-    message_id: msg1.message_id
-  });
-
-  // notify admin
+  // 🔔 ADMIN NOTIFY
   bot.sendMessage(ADMIN_ID,
-`✅ Order Completed
+`✅ UC Delivered
 
-🆔 Order ID: ${orderId}
-💎 ${uc} UC delivered`);
+👤 User: ${chatId}
+🎮 UID: ${user.uid}
+💎 UC: ${uc}
+💰 Rs ${price}
+🆔 Order: ${orderId}`
+  );
 
-}, 10000);
+} catch (error) {
+  console.log(error.response?.data || error.message);
+
+  // ❌ FAILED
+  bot.sendMessage(chatId,
+`❌ Order Failed!
+
+Please contact support: @SastoTopUpCenter`
+  );
+
+  // refund
+  wallets[chatId].npr += price;
+}
 
 
   return;
