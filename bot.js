@@ -157,6 +157,33 @@ bot.on("message", async msg => {
     return;
   }
 
+  // ===== SUPPORT =====
+if (text === "📞 Support") {
+  bot.sendMessage(chatId,
+                  
+`📞 24/7 Support
+
+Need help? Contact our admin 👇
+
+👤 Telegram: @SastoTopUpCenter
+⚡ Fast reply (1–10 minutes)
+
+Thank you for using Sasto TopUp ❤️`, {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "💬 Contact Support",
+            url: "https://t.me/SastoTopUpCenter"
+          }
+        ]
+      ]
+    }
+  });
+  return;
+}
+
+
   // ===== WALLET =====
   
   if (text === "💰 My Wallet") {
