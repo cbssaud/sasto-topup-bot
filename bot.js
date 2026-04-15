@@ -462,58 +462,63 @@ if (prices[text?.split(" ")[0]]) {
   const uc = text.split(" ")[0];
   const price = prices[uc];
 
-  const orderId = Date.now(); // 🧾 create order id
+  const orderId = Date.now();
 
   // save order
   orders[orderId] = {
     userId: chatId,
-    name: user.name || "Player",
-    uid: user.uid || "N/A",
+    uid: user.uid,
     uc: uc,
     price: price,
     status: "processing"
   };
 
-  // check wallet
-  const balance = wallets[chatId].npr;
-
-  if (balance < price) {
-    bot.sendMessage(chatId,
-`❌ Insufficient Balance!
-
-💰 Your Balance: Rs ${balance}
-💵 Required: Rs ${price}`, {
-      reply_markup: {
-        keyboard: [["💰 My Wallet"], ["🔙 Back to Menu"]],
-        resize_keyboard: true
-      }
-    });
-    return;
-  }
-
   // deduct balance
   wallets[chatId].npr -= price;
 
-  // save history
-  history[chatId].purchases.push(`${uc} UC - Rs ${price}`);
-  history[chatId].topups.push(`${uc} UC`);
-  history[chatId].transactions.push(`Paid Rs ${price} for ${uc} UC`);
-
-  // send order message
-  bot.sendMessage(chatId, 
+  // send processing message
+  bot.sendMessage(chatId,
 `🧾 Order Confirmed
 
 🆔 Order ID: ${orderId}
-👤 Player: ${user.name || "Player"}
-🎮 UID: ${user.uid || "N/A"}
+🎮 UID: ${user.uid}
 💎 UC: ${uc}
 💰 Price: Rs ${price}
 
 ⏳ Status: Processing...`
   );
 
+  // 🔥 👉 PUT YOUR DELIVERY CODE HERE 👇
+  setTimeout(() => {
+
+    orders[orderId].status = "completed";
+
+    bot.sendMessage(chatId,
+`🎉 UC Delivered Successfully!
+
+🆔 Order ID: ${orderId}
+💎 ${uc} UC
+
+📥 Your UC has been successfully processed.
+
+⏱ Please wait 1–3 minutes for the UC to be credited to your PUBG account.
+
+📞 If not received within 5 minutes, contact support: @SastoTopUpCenter
+
+🙏 Thank you for choosing Sasto TopUp Center ❤️`);
+
+    // notify admin
+    bot.sendMessage(ADMIN_ID,
+`✅ Order Completed
+
+🆔 Order ID: ${orderId}
+💎 ${uc} UC delivered`);
+
+  }, 10000);
+
   return;
 }
+
 
 });
 
