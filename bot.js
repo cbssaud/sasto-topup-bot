@@ -1,6 +1,21 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
+const fs = require("fs");
+
+// load wallets from file
+let wallets = {};
+try {
+  wallets = JSON.parse(fs.readFileSync("wallets.json"));
+} catch {
+  wallets = {};
+}
+
+// save function
+function saveWallets() {
+  fs.writeFileSync("wallets.json", JSON.stringify(wallets, null, 2));
+}
+
 // 🔑 CONFIG
 const BOT_TOKEN = "8456828173:AAFI44ZMnIizSbl5mIGnD9g_noDxNWDG8K4";
 const API_KEY = "1a73a4a2171f15d9a5bf2df27d636686f9db0cc85fac3e129a71603e57b038a9";
