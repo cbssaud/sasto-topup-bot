@@ -473,19 +473,36 @@ if (
     return;
   }
 
-  // ===== BUY UC =====
-  
+  / ===== BUY UC =====
 if (prices[text?.split(" ")[0]]) {
+
   const uc = text.split(" ")[0];
-const price = prices[uc];
+  const price = prices[uc];
 
-// deduct balance
-wallets[chatId].npr -= price;
+  // ✅ CHECK BALANCE
+  if (wallets[chatId].npr < price) {
+    return bot.sendMessage(chatId,
+`❌ Not enough balance!
 
-// create order
-const orderId = Date.now();
+💰 Your balance: Rs ${wallets[chatId].npr}
+💵 Required: Rs ${price}`);
+  }
 
-bot.sendMessage(chatId,
+  // deduct balance
+  wallets[chatId].npr -= price;
+
+  const orderId = Date.now();
+
+  // ✅ SAVE ORDER (avoid crash)
+  orders[orderId] = {
+    userId: chatId,
+    uid: user.uid,
+    uc,
+    price,
+    status: "processing"
+  };
+
+  bot.sendMessage(chatId,
 `🧾 Order Confirmed
 
 🆔 Order ID: ${orderId}
@@ -494,32 +511,34 @@ bot.sendMessage(chatId,
 💰 Price: Rs ${price}
 
 ⏳ Status: Processing...`
-);
+  );
 
-// 🔥 CALL G2BULK API HERE
-try {
+  // 🔥 CALL G2BULK API
+  try {
     const response = await axios.post(
       "https://api.g2bulk.com/v1/games/pubgm/order",
       {
-        catalogue_name: `${user.package} UC`,
-        player_id: user.uid
+        catalogue_name: `${uc} UC`, // ✅ FIXED HERE
+        player_id: user.uid.toString()
       },
       {
         headers: {
           "X-API-Key": API_KEY,
-        "Content-Type": "application/json"
+          "Content-Type": "application/json"
+        }
       }
+    );
+
+    console.log("API RESPONSE:", response.data);
+
+    if (!response.data.success) {
+      throw new Error(response.data.message);
     }
-  );
 
-  console.log("API RESPONSE:", response.data);
+    // ✅ SUCCESS
+    orders[orderId].status = "completed";
 
-  if (!response.data.success) {
-    throw new Error(response.data.message);
-  }
-
-  // ✅ SUCCESS
-  bot.sendMessage(chatId,
+    bot.sendMessage(chatId,
 `🎉 UC Delivered Successfully!
 
 💎 ${uc} UC sent to UID: ${user.uid}
@@ -527,9 +546,9 @@ try {
 ⏳ Please wait 1–3 minutes
 
 ❤️ Thank you for choosing Sasto TopUp Center`
-  );
+    );
 
-  bot.sendMessage(ADMIN_ID,
+    bot.sendMessage(ADMIN_ID,
 `✅ UC Delivered
 
 👤 User: ${chatId}
@@ -537,28 +556,26 @@ try {
 💎 UC: ${uc}
 💰 Rs ${price}
 🆔 Order: ${orderId}`
-  );
+    );
 
-} catch (error) {
-  console.log("ERROR:", error.response?.data || error.message);
+  } catch (error) {
+    console.log("ERROR:", error.response?.data || error.message);
 
-  bot.sendMessage(chatId,
+    // ❌ FAIL → REFUND
+    orders[orderId].status = "failed";
+    wallets[chatId].npr += price;
+
+    bot.sendMessage(chatId,
 `❌ Order Failed!
 
 💰 Rs ${price} refunded
 
 📞 Support: @SastoTopUpCenter`
-  );
-
-  wallets[chatId].npr += price;
-}
-
+    );
+  }
 
   return;
 }
-
-
-});
 
 // ===== ADMIN =====
 
