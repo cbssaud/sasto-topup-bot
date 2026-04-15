@@ -108,9 +108,6 @@ bot.on("message", async msg => {
   return;
 }
 
-    users[chatId] = { mode: "voucher" };
-  }
-
   if (text === "🎮 Game Top-Ups" || text === "🎁 Gift Card & PUBG Voucher") {
     bot.sendMessage(chatId, "💱 Choose Currency:", {
       reply_markup: {
