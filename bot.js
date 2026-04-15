@@ -27,6 +27,7 @@ const prices = {
 };
 
 // ===== START =====
+
 bot.onText(/\/start/, msg => {
   const chatId = msg.chat.id;
   users[chatId] = {};
@@ -48,6 +49,7 @@ bot.onText(/\/start/, msg => {
 });
 
 // ===== MAIN =====
+
 bot.on("message", async msg => {
   const chatId = msg.chat.id;
   const text = msg.text;
@@ -62,6 +64,7 @@ bot.on("message", async msg => {
   }
 
   // ===== MENU =====
+  
   if (text === "🔙 Back to Menu") {
     users[chatId] = {};
     bot.sendMessage(chatId, "🏠 Main Menu", {
@@ -77,6 +80,7 @@ bot.on("message", async msg => {
   }
 
   // ===== MODES =====
+  
   if (text === "🎮 Game Top-Ups") {
     users[chatId] = { mode: "topup" };
   }
@@ -120,6 +124,7 @@ bot.on("message", async msg => {
   }
 
   // ===== ACCOUNT =====
+  
   if (text === "👤 My Account") {
     bot.sendMessage(chatId, "👤 My Account", {
       reply_markup: {
@@ -153,6 +158,7 @@ bot.on("message", async msg => {
   }
 
   // ===== WALLET =====
+  
   if (text === "💰 My Wallet") {
     bot.sendMessage(chatId, "💼 Choose Wallet Type:", {
       reply_markup: {
@@ -167,6 +173,7 @@ bot.on("message", async msg => {
   }
 
   // ===== NPR WALLET =====
+  
   if (text === "🇳🇵 NPR Wallet") {
     user.walletMode = "npr";
     users[chatId] = user;
@@ -192,6 +199,7 @@ bot.on("message", async msg => {
   }
 
   // ===== DEPOSIT METHOD =====
+  
   if (["📱 Esewa", "🏦 Bank", "💳 Khalti"].includes(text) && user.walletMode === "npr") {
     user.depositMethod = text;
     user.awaitingAmount = true;
@@ -202,6 +210,7 @@ bot.on("message", async msg => {
   }
 
   // ===== ENTER AMOUNT =====
+  
   if (user.awaitingAmount && !isNaN(text)) {
     user.amount = parseInt(text);
     user.awaitingAmount = false;
@@ -233,6 +242,7 @@ After payment click Paid`, {
   }
 
   // ===== PAID =====
+  
   if (text === "✅ Paid" && user.awaitingWalletPayment) {
     user.awaitingWalletPayment = false;
     user.awaitingWalletScreenshot = true;
@@ -243,6 +253,7 @@ After payment click Paid`, {
   }
 
   // ===== SCREENSHOT =====
+  
   if (user.awaitingWalletScreenshot && msg.photo) {
     user.awaitingWalletScreenshot = false;
 
@@ -292,6 +303,7 @@ contact admin: @SastoTopUpCenter`, {
   }
 
   // ===== CURRENCY =====
+  
   if (text === "🇳🇵 Nepali (NPR)" || text === "💵 USD") {
     user.currency = text;
     users[chatId] = user;
@@ -327,6 +339,7 @@ if (
 }
 
   // ===== PUBG =====
+  
   if (text === "🎯 PUBGM UC & Items" || text === "🎯 PUBG MOBILE UC Vouchers") {
 
   // 🎁 VOUCHER MODE (NO UID)
@@ -375,6 +388,7 @@ if (
 }
 
   // ===== VERIFY UID =====
+  
   if (user.waitingUID && text && !text.startsWith("/")) {
     user.uid = text;
     user.name = "Player";
@@ -416,6 +430,7 @@ if (
   }
 
   // ===== BUY UC =====
+  
   if (prices[text?.split(" ")[0]]) {
     const uc = text.split(" ")[0];
     const price = prices[uc];
@@ -450,6 +465,7 @@ if (
 });
 
 // ===== ADMIN =====
+
 bot.on("callback_query", async q => {
   const [type, action, id] = q.data.split("_");
   const order = orders[id];
