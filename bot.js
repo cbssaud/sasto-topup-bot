@@ -1,20 +1,49 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
-const fs = require("fs");
+const { MongoClient } = require("mongodb");
 
-// load wallets from file
-let wallets = {};
-try {
-  wallets = JSON.parse(fs.readFileSync("wallets.json"));
-} catch {
-  wallets = {};
+// 🔴 PUT YOUR PASSWORD HERE
+const MONGO_URI = "mongodb+srv://cbssaud:Jemsfine321@cluster0.lz4mpsa.mongodb.net/?retryWrites=true&w=majority";
+
+const client = new MongoClient(MONGO_URI);
+let db;
+
+// connect database
+async function connectDB() {
+  try {
+    await client.connect();
+    db = client.db("sasto_bot");
+    console.log("MongoDB Connected ✅");
+  } catch (err) {
+    console.log("MongoDB Error ❌", err);
+  }
+}
+connectDB();
+
+async function getWallet(userId) {
+  const user = await db.collection("wallets").findOne({ userId });
+
+  if (!user) {
+    await db.collection("wallets").insertOne({
+      userId,
+      npr: 0,
+      usd: 0
+    });
+    return { userId, npr: 0, usd: 0 };
+  }
+
+  return user;
 }
 
-// save function
-function saveWallets() {
-  fs.writeFileSync("wallets.json", JSON.stringify(wallets, null, 2));
+async function updateWallet(userId, data) {
+  await db.collection("wallets").updateOne(
+    { userId },
+    { $set: data },
+    { upsert: true }
+  );
 }
+
 
 // 🔑 CONFIG
 const BOT_TOKEN = "8456828173:AAFI44ZMnIizSbl5mIGnD9g_noDxNWDG8K4";
@@ -113,10 +142,7 @@ if (text === "🔁 More Order") {
     history[chatId] = { purchases: [], topups: [], transactions: [] };
   }
 
-  if (!wallets[chatId]) {
-  wallets[chatId] = { npr: 0, usd: 0 };
-  saveWallets();
-}
+
 
   // ===== MENU =====
   
@@ -260,7 +286,9 @@ Thank you for using Sasto TopUp ❤️`, {
     user.walletMode = "npr";
     users[chatId] = user;
 
-    const balance = wallets[chatId].npr;
+    const wallet = await getWallet(chatId);
+const balance = wallet.npr;
+
 
     bot.sendMessage(chatId, `💰 NPR Wallet
 
@@ -533,7 +561,9 @@ if (prices[text?.split(" ")[0]]) {
   const price = prices[uc];
 
   // ✅ CHECK BALANCE
-  if (wallets[chatId].npr < price) {
+  const wallet = await getWallet(chatId);
+
+if (wallet.npr < price) {
     return bot.sendMessage(chatId,
 `❌ Not enough balance!
 
@@ -542,7 +572,9 @@ if (prices[text?.split(" ")[0]]) {
   }
 
   // deduct balance
-  wallets[chatId].npr -= price;
+  await updateWallet(chatId, {
+  npr: wallet.npr - price
+});
 
   const orderId = Date.now();
 
@@ -616,7 +648,10 @@ if (prices[text?.split(" ")[0]]) {
 
     // ❌ FAIL → REFUND
     orders[orderId].status = "failed";
-    wallets[chatId].npr += price;
+    const wallet2 = await getWallet(chatId);
+await updateWallet(chatId, {
+  npr: wallet2.npr + price
+});
 
     bot.sendMessage(chatId,
 `❌ Order Failed!
@@ -654,7 +689,10 @@ bot.on("callback_query", async q => {
 
     if (action === "ok") {
       order.status = "approved";
-      wallets[order.userId].npr += order.amount;
+      const wallet = await getWallet(order.userId);
+await updateWallet(order.userId, {
+  npr: wallet.npr + order.amount
+});
 
       bot.sendMessage(order.userId,
 `✅ Deposit successful!
