@@ -13,87 +13,56 @@ let orders = {};
 let history = {};
 let wallets = {};
 
-async function sendUCWithRetry({ chatId, user, uc, price, orderId, retries = 3 }) {
-  try {
-    const response = await axios.post(
-      "https://api.g2bulk.com/v1/games/pubgm/order",
-      {
-        catalogue_name: `${uc} UC`,
-        player_id: user.uid
-      },
-      {
-        headers: {
-          "X-API-Key": "1a73a4a2171f15d9a5bf2df27d636686f9db0cc85fac3e129a71603e57b038a9"
-        }
+try {
+  const response = await axios.post(
+    "https://api.g2bulk.com/v1/games/pubgm/order",
+    {
+      catalogue_name: uc.toString(),
+      player_id: user.uid.toString()
+    },
+    {
+      headers: {
+        "X-API-Key": API_KEY,
+        "Content-Type": "application/json"
       }
-    );
+    }
+  );
 
-    console.log("SUCCESS:", response.data);
+  console.log("API RESPONSE:", response.data);
 
-    // ✅ SUCCESS
-    orders[orderId].status = "completed";
+  if (!response.data.success) {
+    throw new Error(response.data.message);
+  }
 
-    bot.sendMessage(chatId,
+  // ✅ SUCCESS
+  orders[orderId].status = "completed";
+
+  bot.sendMessage(chatId,
 `🎉 UC Delivered Successfully!
 
-🆔 Order ID: ${orderId}
 💎 ${uc} UC sent
-
-⏳ Please wait 1–3 minutes to receive in PUBG.
+⏳ Please wait 1–3 minutes
 
 ❤️ Thank you for choosing Sasto TopUp Center`
-    );
+  );
 
-    bot.sendMessage(ADMIN_ID,
-`✅ UC Delivered
+} catch (error) {
+  console.log("ERROR:", error.response?.data || error.message);
 
-👤 User: ${chatId}
-🎮 UID: ${user.uid}
-💎 UC: ${uc}
-💰 Rs ${price}
-🆔 Order: ${orderId}`
-    );
-
-  } catch (error) {
-    console.log("ERROR:", error.response?.data || error.message);
-
-    // 🔁 RETRY
-    if (retries > 0) {
-      bot.sendMessage(chatId, `🔄 Retrying... (${4 - retries}/3)`);
-
-      return sendUCWithRetry({
-        chatId,
-        user,
-        uc,
-        price,
-        orderId,
-        retries: retries - 1
-      });
-    }
-
-    // ❌ FINAL FAIL → REFUND
+  // ❌ SAFE CHECK
+  if (orders[orderId]) {
     orders[orderId].status = "failed";
+  }
 
-    wallets[chatId].npr += price;
+  wallets[chatId].npr += price;
 
-    bot.sendMessage(chatId,
+  bot.sendMessage(chatId,
 `❌ Order Failed!
 
-💰 Rs ${price} refunded to your wallet.
+💰 Rs ${price} refunded
 
-📞 Contact support: @SastoTopUpCenter`
-    );
-
-    bot.sendMessage(ADMIN_ID,
-`❌ Order Failed (Refunded)
-
-👤 User: ${chatId}
-🎮 UID: ${user.uid}
-💎 UC: ${uc}
-💰 Rs ${price}
-🆔 Order: ${orderId}`
-    );
-  }
+📞 Support: @SastoTopUpCenter`
+  );
 }
 
 
