@@ -310,40 +310,50 @@ contact admin: @SastoTopUpCenter`, {
   }
 
   // ===== PUBG =====
-  if (text === "🎯 PUBG MOBILE UC Vouchers") {
+  if (text === "🎯 PUBGM UC & Items" || text === "🎯 PUBG MOBILE UC Vouchers") {
 
-  const currency = user.currency || "🇳🇵 Nepali (NPR)";
+  // 🎁 VOUCHER MODE (NO UID)
+  if (user.mode === "voucher") {
 
-  let priceList = prices;
+    const currency = user.currency || "🇳🇵 Nepali (NPR)";
+    let priceList = prices;
 
-  if (currency === "💵 USD") {
-    priceList = {
-      "60": "0.93",
-      "325": "4.65",
-      "985": "13.70",
-      "1320": "18.90",
-      "1800": "24.00",
-      "3850": "45.00",
-      "8100": "88.00"
-    };
+    if (currency === "💵 USD") {
+      priceList = {
+        "60": "0.93",
+        "325": "4.65",
+        "985": "13.70",
+        "1320": "18.90",
+        "1800": "24.00",
+        "3850": "45.00",
+        "8100": "88.00"
+      };
+    }
+
+    const format = (uc) =>
+      `${uc} UC Voucher - ${currency === "💵 USD" ? "$" + priceList[uc] : "Rs " + priceList[uc]}`;
+
+    bot.sendMessage(chatId, "🎫 PUBG UC Voucher List:", {
+      reply_markup: {
+        keyboard: [
+          [format("60"), format("325")],
+          [format("985"), format("1320")],
+          [format("1800")],
+          [format("3850"), format("8100")],
+          ["🔙 Back to Menu"]
+        ],
+        resize_keyboard: true
+      }
+    });
+
+    return;
   }
 
-  const format = (uc) =>
-    `${uc} UC Voucher - ${currency === "💵 USD" ? "$" + priceList[uc] : "Rs " + priceList[uc]}`;
+  // 🎮 TOPUP MODE (ASK UID)
+  user.waitingUID = true;
+  users[chatId] = user;
 
-  bot.sendMessage(chatId, "🎫 PUBG UC Voucher List:", {
-    reply_markup: {
-      keyboard: [
-        [format("60"), format("325")],
-        [format("985"), format("1320")],
-        [format("1800")],
-        [format("3850"), format("8100")],
-        ["🔙 Back to Menu"]
-      ],
-      resize_keyboard: true
-    }
-  });
-
+  bot.sendMessage(chatId, "👉 Send your PUBG UID");
   return;
 }
 
