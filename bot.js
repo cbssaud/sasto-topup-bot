@@ -501,7 +501,7 @@ try {
   const response = await axios.post(
     "https://api.g2bulk.com/v1/games/pubgm/order",
     {
-      catalogue_name: `${uc} UC`,
+      catalogue_name: `60 UC`,
       player_id: user.uid.toString()
     },
     {
