@@ -475,17 +475,18 @@ if (
 if (user.waitingUID && text && !text.startsWith("/")) {
   try {
     const res = await axios.post(
-      "https://api.g2bulk.com/v1/games/checkPlayerId",
-      {
-        game: "pubgm",
-        user_id: text
-      },
-      {
-        headers: {
-          "X-API-Key": API_KEY
-        }
-      }
-    );
+  "https://api.g2bulk.com/v1/games/checkPlayerId",
+  {
+    game: "pubgm",
+    user_id: text
+  },
+  {
+    headers: {
+      "X-API-Key": API_KEY,
+      "Content-Type": "application/json"
+    }
+  }
+);
 
     if (res.data.valid === "valid") {
       user.uid = text;
