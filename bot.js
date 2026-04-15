@@ -23,7 +23,7 @@ async function sendUCWithRetry({ chatId, user, uc, price, orderId, retries = 3 }
       },
       {
         headers: {
-          "X-API-Key": "YOUR_REAL_G2BULK_API_KEY"
+          "X-API-Key": "1a73a4a2171f15d9a5bf2df27d636686f9db0cc85fac3e129a71603e57b038a9"
         }
       }
     );
