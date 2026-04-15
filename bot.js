@@ -21,7 +21,7 @@ async function sendUCWithRetry({ chatId, user, uc, price, orderId, retries = 3 }
       region: "np"
     }, {
       headers: {
-        Authorization: "Bearer YOUR_API_KEY"
+        Authorization: "Bearer 1a73a4a2171f15d9a5bf2df27d636686f9db0cc85fac3e129a71603e57b038a9"
       }
     });
 
