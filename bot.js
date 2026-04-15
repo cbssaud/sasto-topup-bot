@@ -443,51 +443,59 @@ if (
 
   // ===== VERIFY UID =====
   
-  if (!user.uid && text && !text.startsWith("/")) {
+if (user.waitingUID && text && !text.startsWith("/")) {
   try {
     const res = await axios.post(
       "https://api.g2bulk.com/v1/games/checkPlayerId",
-      { game: "pubgm", user_id: text }
+      {
+        game: "pubgm",
+        user_id: text
+      },
+      {
+        headers: {
+          "X-API-Key": API_KEY
+        }
+      }
     );
 
     if (res.data.valid === "valid") {
       user.uid = text;
       user.name = res.data.name;
+      user.waitingUID = false;
       users[chatId] = user;
 
-      bot.sendMessage(chatId, `✅ Player: ${user.name}
-🆔 ${user.uid}
+      bot.sendMessage(chatId,
+`✅ Player Verified!
 
+👤 Name: ${user.name}
+🆔 UID: ${user.uid}`
+      );
 
-    if (currency === "💵 USD") {
-      priceList = {
-        "60": "0.93",
-        "325": "4.65",
-        "985": "13.70",
-        "1320": "18.90",
-        "1800": "24.00",
-        "3850": "45.00",
-        "8100": "88.00"
-      };
+      const format = (uc) => `${uc} UC - Rs ${prices[uc]}`;
+
+      bot.sendMessage(chatId, "💎 Select UC", {
+        reply_markup: {
+          keyboard: [
+            [format("60"), format("325")],
+            [format("985"), format("1320")],
+            [format("1800")],
+            [format("3850"), format("8100")],
+            ["🔙 Back to Menu"]
+          ],
+          resize_keyboard: true
+        }
+      });
+
+    } else {
+      bot.sendMessage(chatId, "❌ Invalid PUBG UID");
     }
 
-    const format = (uc) =>
-      `${uc} UC - ${currency === "💵 USD" ? "$" + priceList[uc] : "Rs " + priceList[uc]}`;
-
-    bot.sendMessage(chatId, "💎 Select UC", {
-      reply_markup: {
-        keyboard: [
-          [format("60"), format("325")],
-          [format("985"), format("1320")],
-          [format("1800")],
-          [format("3850"), format("8100")],
-          ["🔙 Back to Menu"]
-        ],
-        resize_keyboard: true
-      }
-    });
-    return;
+  } catch (error) {
+    bot.sendMessage(chatId, "⚠️ Verify error, try again");
   }
+
+  return;
+}
 
    // ===== BUY UC =====
 if (prices[text?.split(" ")[0]]) {
