@@ -9,7 +9,7 @@ try {
   wallets = JSON.parse(fs.readFileSync("wallets.json"));
 } catch {
   wallets = {};
-}
+};
 
 // save function
 function saveWallets() {
