@@ -4,7 +4,7 @@ const axios = require('axios');
 const { MongoClient } = require("mongodb");
 
 // 🔴 PUT YOUR PASSWORD HERE
-const MONGO_URI = "mongodb+srv://cbssaud:Jemsfine321@cluster0.lz4mpsa.mongodb.net/?retryWrites=true&w=majority";
+const MONGO_URI = "mongodb+srv://cbssaud:Jemsfine321@cluster0.1z4mpsa.mongodb.net/?appName=Cluster0y";
 
 const client = new MongoClient(MONGO_URI);
 let db;
