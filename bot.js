@@ -26,7 +26,7 @@ const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 let users = {};
 let orders = {};
 let history = {};
-let wallets = {};
+
 
 
 // ===== PRICES (NPR) =====
@@ -114,7 +114,9 @@ if (text === "🔁 More Order") {
   }
 
   if (!wallets[chatId]) {
-    wallets[chatId] = { npr: 0, usd: 0 };
+  wallets[chatId] = { npr: 0, usd: 0 };
+  saveWallets();
+}
   }
 
   // ===== MENU =====
