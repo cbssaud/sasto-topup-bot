@@ -488,12 +488,29 @@ if (prices[text?.split(" ")[0]]) {
 ⏳ Status: Processing...`
   );
 
-  // 🔥 👉 PUT YOUR DELIVERY CODE HERE 👇
-  setTimeout(() => {
+// 🔥 PREMIUM ANIMATION DELIVERY
 
-    orders[orderId].status = "completed";
+const msg1 = await bot.sendMessage(chatId, "⏳ Processing your order...");
 
-    bot.sendMessage(chatId,
+setTimeout(() => {
+  bot.editMessageText("🔄 Verifying payment...", {
+    chat_id: chatId,
+    message_id: msg1.message_id
+  });
+}, 2000);
+
+setTimeout(() => {
+  bot.editMessageText("📡 Sending UC to your PUBG account...", {
+    chat_id: chatId,
+    message_id: msg1.message_id
+  });
+}, 5000);
+
+setTimeout(() => {
+
+  orders[orderId].status = "completed";
+
+  bot.editMessageText(
 `🎉 UC Delivered Successfully!
 
 🆔 Order ID: ${orderId}
@@ -505,16 +522,21 @@ if (prices[text?.split(" ")[0]]) {
 
 📞 If not received within 5 minutes, contact support: @SastoTopUpCenter
 
-🙏 Thank you for choosing Sasto TopUp Center ❤️`);
+🙏 Thank you for choosing Sasto TopUp Center ❤️`,
+  {
+    chat_id: chatId,
+    message_id: msg1.message_id
+  });
 
-    // notify admin
-    bot.sendMessage(ADMIN_ID,
+  // notify admin
+  bot.sendMessage(ADMIN_ID,
 `✅ Order Completed
 
 🆔 Order ID: ${orderId}
 💎 ${uc} UC delivered`);
 
-  }, 10000);
+}, 10000);
+
 
   return;
 }
