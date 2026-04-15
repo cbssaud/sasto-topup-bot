@@ -15,15 +15,18 @@ let wallets = {};
 
 async function sendUCWithRetry({ chatId, user, uc, price, orderId, retries = 3 }) {
   try {
-    const response = await axios.post("https://api.g2bulk.com/v1/", {
-      uid: user.uid,
-      product: uc,
-      region: "np"
-    }, {
-      headers: {
-        Authorization: "Bearer 1a73a4a2171f15d9a5bf2df27d636686f9db0cc85fac3e129a71603e57b038a9"
+    const response = await axios.post(
+      "https://api.g2bulk.com/v1/games/pubgm/order",
+      {
+        catalogue_name: `${uc} UC`,
+        player_id: user.uid
+      },
+      {
+        headers: {
+          "X-API-Key": "YOUR_REAL_G2BULK_API_KEY"
+        }
       }
-    });
+    );
 
     console.log("SUCCESS:", response.data);
 
@@ -36,7 +39,7 @@ async function sendUCWithRetry({ chatId, user, uc, price, orderId, retries = 3 }
 🆔 Order ID: ${orderId}
 💎 ${uc} UC sent
 
-⏳ Please wait 1–3 minutes to receive.
+⏳ Please wait 1–3 minutes to receive in PUBG.
 
 ❤️ Thank you for choosing Sasto TopUp Center`
     );
@@ -92,7 +95,6 @@ async function sendUCWithRetry({ chatId, user, uc, price, orderId, retries = 3 }
     );
   }
 }
-
 
 
 // ===== PRICES (NPR) =====
