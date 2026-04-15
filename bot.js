@@ -83,7 +83,8 @@ bot.on("message", async msg => {
   if (text === "🎁 Gift Card & PUBG Voucher") {
   users[chatId] = { mode: "voucher" };
 
-  bot.sendMessage(chatId, `🎁 Here are our GiftCards & Vouchers categories
+  bot.sendMessage(chatId,
+`🎁 Here are our GiftCards & Vouchers categories
 
 📄 Page 1/1 | Total Categories: 10`, {
     reply_markup: {
@@ -106,6 +107,7 @@ bot.on("message", async msg => {
 
   return;
 }
+
     users[chatId] = { mode: "voucher" };
   }
 
