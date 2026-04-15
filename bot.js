@@ -443,15 +443,21 @@ if (
 
   // ===== VERIFY UID =====
   
-  if (user.waitingUID && text && !text.startsWith("/")) {
-    user.uid = text;
-    user.name = "Player";
-    user.waitingUID = false;
-    users[chatId] = user;
+  if (!user.uid && text && !text.startsWith("/")) {
+  try {
+    const res = await axios.post(
+      "https://api.g2bulk.com/v1/games/checkPlayerId",
+      { game: "pubgm", user_id: text }
+    );
 
-    const currency = user.currency;
+    if (res.data.valid === "valid") {
+      user.uid = text;
+      user.name = res.data.name;
+      users[chatId] = user;
 
-    let priceList = prices;
+      bot.sendMessage(chatId, `✅ Player: ${user.name}
+🆔 ${user.uid}
+
 
     if (currency === "💵 USD") {
       priceList = {
