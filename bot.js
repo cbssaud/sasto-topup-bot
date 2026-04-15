@@ -556,17 +556,25 @@ if (
 
   // ===== BUY UC =====
   
-if (prices[text?.split(" ")[0]]) {
+if (prices[uc]) {
   const uc = text.split(" ")[0];
-const price = prices[uc];
+  const price = prices[uc];
 
-// deduct balance
-wallets[chatId].npr -= price;
+  // deduct balance
+  wallets[chatId].npr -= price;
 
-// create order
-const orderId = Date.now();
+  // ✅ YOUR CODE HERE 👇
+  const orderId = Date.now();
 
-bot.sendMessage(chatId,
+  orders[orderId] = {
+    userId: chatId,
+    uid: user.uid,
+    uc: uc,
+    price: price,
+    status: "processing"
+  };
+
+  bot.sendMessage(chatId,
 `🧾 Order Confirmed
 
 🆔 Order ID: ${orderId}
@@ -575,20 +583,19 @@ bot.sendMessage(chatId,
 💰 Price: Rs ${price}
 
 ⏳ Status: Processing...`
-);
+  );
 
-// 🔥 CALL G2BULK API HERE
-await sendUCWithRetry({
-  chatId,
-  user,
-  uc,
-  price,
-  orderId
-});
-
+  await sendUCWithRetry({
+    chatId,
+    user,
+    uc,
+    price,
+    orderId
+  });
 
   return;
 }
+
 
 
 });
