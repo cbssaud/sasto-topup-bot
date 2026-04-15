@@ -498,15 +498,15 @@ bot.sendMessage(chatId,
 
 // 🔥 CALL G2BULK API HERE
 try {
-  const response = await axios.post(
-    "https://api.g2bulk.com/v1/games/pubgm/order",
-    {
-      catalogue_name: `60 UC`,
-      player_id: user.uid.toString()
-    },
-    {
-      headers: {
-        "X-API-Key": API_KEY,
+    const response = await axios.post(
+      "https://api.g2bulk.com/v1/games/pubgm/order",
+      {
+        catalogue_name: `${user.package} UC`,
+        player_id: user.uid
+      },
+      {
+        headers: {
+          "X-API-Key": API_KEY,
         "Content-Type": "application/json"
       }
     }
