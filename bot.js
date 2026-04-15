@@ -309,6 +309,22 @@ contact admin: @SastoTopUpCenter`, {
     return;
   }
 
+  // ===== OTHER VOUCHERS =====
+if (
+  text === "💳 RAZER Gold Accounts" ||
+  text === "🍎 iTunes USA" ||
+  text === "🎮 RAZER Gold GiftCards" ||
+  text === "🎮 PlayStation GiftCards" ||
+  text === "🔥 Free Fire Vouchers" ||
+  text === "🎲 Yalla Ludo" ||
+  text === "🆕 New State Mobile" ||
+  text === "🎴 Jawaker GiftCards" ||
+  text === "📱 IMO GiftCards"
+) {
+  bot.sendMessage(chatId, "🚧 Coming soon...");
+  return;
+}
+
   // ===== PUBG =====
   if (text === "🎯 PUBGM UC & Items" || text === "🎯 PUBG MOBILE UC Vouchers") {
 
