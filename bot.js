@@ -25,15 +25,6 @@ const prices = {
   "3850": 6860,
   "8100": 13500
 };
-const catalogueMap = {
-  "60": "60",
-  "325": "325",
-  "985": "985",
-  "1320": "1320",
-  "1800": "1800",
-  "3850": "3850 UC (discounted)",
-  "8100": "8100 UC (discounted)"
-};
 
 // ===== START =====
 
@@ -442,20 +433,11 @@ if (
 
   // ===== VERIFY UID =====
   
-  if (!user.uid && text && !text.startsWith("/")) {
-  try {
-    const res = await axios.post(
-      "https://api.g2bulk.com/v1/games/checkPlayerId",
-      { game: "pubgm", user_id: text }
-    );
-
-    if (res.data.valid === "valid") {
-      user.uid = text;
-      user.name = res.data.name;
-      users[chatId] = user;
-
-      bot.sendMessage(chatId, `✅ Player: ${user.name}
-🆔 ${user.uid}
+  if (user.waitingUID && text && !text.startsWith("/")) {
+    user.uid = text;
+    user.name = "Player";
+    user.waitingUID = false;
+    users[chatId] = user;
 
     const currency = user.currency;
 
