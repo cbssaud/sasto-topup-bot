@@ -473,7 +473,7 @@ if (
     return;
   }
 
-  / ===== BUY UC =====
+   // ===== BUY UC =====
 if (prices[text?.split(" ")[0]]) {
 
   const uc = text.split(" ")[0];
