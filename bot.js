@@ -54,6 +54,23 @@ bot.on("message", async msg => {
   const chatId = msg.chat.id;
   const text = msg.text;
   const user = users[chatId] || {};
+  // 🔁 MORE ORDER BUTTON
+if (text === "🔁 More Order") {
+  users[chatId] = {}; // reset user
+
+  bot.sendMessage(chatId, "🎮 Choose Your Game:", {
+    reply_markup: {
+      keyboard: [
+        ["🎯 PUBGM UC & Items"],
+        ["🗡 Mobile Legends", "🔥 Free Fire"],
+        ["🛡 Honor of Kings", "🎮 More Games"],
+        ["🔙 Back to Menu"]
+      ],
+      resize_keyboard: true
+    }
+  });
+  return;
+}
 
   if (!history[chatId]) {
     history[chatId] = { purchases: [], topups: [], transactions: [] };
@@ -485,8 +502,16 @@ if (prices[text?.split(" ")[0]]) {
 💎 UC: ${uc}
 💰 Price: Rs ${price}
 
-⏳ Status: Processing...`
-  );
+⏳ Status: Processing...`,
+{
+  reply_markup: {
+    keyboard: [
+      ["🔁 More Order"],
+      ["🔙 Back to Menu"]
+    ],
+    resize_keyboard: true
+  }
+});
 
 // 🔥 PREMIUM ANIMATION DELIVERY
 
