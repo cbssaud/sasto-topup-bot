@@ -9,7 +9,7 @@ try {
   wallets = JSON.parse(fs.readFileSync("wallets.json"));
 } catch {
   wallets = {};
-};
+}
 
 // save function
 function saveWallets() {
@@ -117,7 +117,6 @@ if (text === "🔁 More Order") {
   wallets[chatId] = { npr: 0, usd: 0 };
   saveWallets();
 }
-  }
 
   // ===== MENU =====
   
