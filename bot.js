@@ -15,7 +15,7 @@ let wallets = {};
 
 async function sendUCWithRetry({ chatId, user, uc, price, orderId, retries = 3 }) {
   try {
-    const response = await axios.post("YOUR_G2BULK_API_URL", {
+    const response = await axios.post("1a73a4a2171f15d9a5bf2df27d636686f9db0cc85fac3e129a71603e57b038a9", {
       uid: user.uid,
       product: uc,
       region: "np"
