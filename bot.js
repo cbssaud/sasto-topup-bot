@@ -26,6 +26,16 @@ const prices = {
   "8100": 13500
 };
 
+const catalogueMap = {
+  "60": "60",
+  "325": "325",
+  "985": "985",
+  "1320": "1320",
+  "1800": "1800",
+  "3850": "3850 UC (discounted)",
+  "8100": "8100 UC (discounted)"
+};
+
 // ===== START =====
 
 bot.onText(/\/start/, msg => {
