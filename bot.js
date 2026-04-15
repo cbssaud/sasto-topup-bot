@@ -46,10 +46,7 @@ async function updateWallet(userId, data) {
 
 
 // 🔑 CONFIG
-const BOT_TOKEN = "8456828173:AAFI44ZMnIizSbl5mIGnD9g_noDxNWDG8K4";
-const API_KEY = "1a73a4a2171f15d9a5bf2df27d636686f9db0cc85fac3e129a71603e57b038a9";
-const ADMIN_ID = 8667797941;
-
+ccccc
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 let users = {};
