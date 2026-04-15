@@ -357,8 +357,6 @@ contact admin: @SastoTopUpCenter`, {
   return;
 }
 
-  }
-
   // ===== VERIFY UID =====
   if (user.waitingUID && text && !text.startsWith("/")) {
     user.uid = text;
