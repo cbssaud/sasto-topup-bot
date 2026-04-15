@@ -458,37 +458,63 @@ if (
 
   // ===== BUY UC =====
   
-  if (prices[text?.split(" ")[0]]) {
-    const uc = text.split(" ")[0];
-    const price = prices[uc];
+if (prices[text?.split(" ")[0]]) {
+  const uc = text.split(" ")[0];
+  const price = prices[uc];
 
-    const balance = wallets[chatId].npr;
+  const orderId = Date.now(); // 🧾 create order id
 
-    if (balance < price) {
-      bot.sendMessage(chatId,
+  // save order
+  orders[orderId] = {
+    userId: chatId,
+    name: user.name || "Player",
+    uid: user.uid || "N/A",
+    uc: uc,
+    price: price,
+    status: "processing"
+  };
+
+  // check wallet
+  const balance = wallets[chatId].npr;
+
+  if (balance < price) {
+    bot.sendMessage(chatId,
 `❌ Insufficient Balance!
 
 💰 Your Balance: Rs ${balance}
-💵 Required: Rs ${price}
-
-👉 Add money to wallet`, {
-        reply_markup: {
-          keyboard: [["💰 My Wallet"], ["🔙 Back to Menu"]],
-          resize_keyboard: true
-        }
-      });
-      return;
-    }
-
-    wallets[chatId].npr -= price;
-
-    history[chatId].purchases.push(`${uc} UC`);
-    history[chatId].topups.push(`${uc} UC`);
-    history[chatId].transactions.push(`Paid Rs ${price} for ${uc} UC`);
-
-    bot.sendMessage(chatId, "✅ Order placed! Balance deducted");
+💵 Required: Rs ${price}`, {
+      reply_markup: {
+        keyboard: [["💰 My Wallet"], ["🔙 Back to Menu"]],
+        resize_keyboard: true
+      }
+    });
     return;
   }
+
+  // deduct balance
+  wallets[chatId].npr -= price;
+
+  // save history
+  history[chatId].purchases.push(`${uc} UC - Rs ${price}`);
+  history[chatId].topups.push(`${uc} UC`);
+  history[chatId].transactions.push(`Paid Rs ${price} for ${uc} UC`);
+
+  // send order message
+  bot.sendMessage(chatId, 
+`🧾 Order Confirmed
+
+🆔 Order ID: ${orderId}
+👤 Player: ${user.name || "Player"}
+🎮 UID: ${user.uid || "N/A"}
+💎 UC: ${uc}
+💰 Price: Rs ${price}
+
+⏳ Status: Processing...`
+  );
+
+  return;
+}
+
 });
 
 // ===== ADMIN =====
